@@ -68,28 +68,37 @@ def registrar_proyecto(request: Request, mensaje: str = None, db: Session = Depe
 
 
 @app.post("/register")
-def registrar_usuario(nombre: str = Form(...), apellido: str = Form(...),telefono: str =Form(...),matricula: str =Form(...),direccion: str =Form(...), ci: str = Form(...),
-                      rol: str = Form(...), correo: str = Form(...), password: str = Form(...),
-                      db: Session = Depends(get_db)):
-    db_usuario = db.query(models.Usuario).filter(models.Usuario.documento_usuario == ci).first()
-    if db_usuario:
-        raise HTTPException(status_code=400, detail="El usuario con este documento ya existe")
-    nuevo_usuario = models.Usuario(
+async def registrar_usuario(
+    nombre: str = Form(...),
+    apellido: str = Form(...),
+    ci: str = Form(...),
+    telefono: str = Form(...),
+    direccion: str = Form(...),
+    rol: str = Form(...),
+    correo: str = Form(...),
+    password: str = Form(...),
+    matricula: Optional[str] = Form(None),  
+    db: Session = Depends(get_db)
+):
+    nuevo_usuario = Usuario(
         nombre_usuario=nombre,
         apellido_usuario=apellido,
         documento_usuario=ci,
         telefono_usuario=telefono,
         direccion_usuario=direccion,
-        matricula_usuario=matricula,
         rol_usuario=rol,
-        contra=password,
-        correo_usuario=correo
+        correo_usuario=correo,
+        contra=password  
     )
+    
+    if rol == "Estudiante" and matricula:
+        nuevo_usuario.matricula_usuario = matricula
+
     db.add(nuevo_usuario)
     db.commit()
     db.refresh(nuevo_usuario)
-
     return RedirectResponse(url="/", status_code=302)
+
 
 @app.get("/docentes", response_class=HTMLResponse)
 def listar_docentes(request: Request, db: Session = Depends(get_db)):
