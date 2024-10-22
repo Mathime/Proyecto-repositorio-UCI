@@ -22,7 +22,7 @@ def inicio(request:Request):
 async def login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-
+##
 @app.get("/facultades", response_class=HTMLResponse)
 def leer_facultades(request: Request, db: Session = Depends(get_db)):
     facultades = db.query(models.Facultad).all()
