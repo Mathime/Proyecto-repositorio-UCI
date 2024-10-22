@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Materia</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <script>
+        // Función para filtrar los cursos según la carrera seleccionada
+        function filtrarCursos() {
+            var carreraId = document.getElementById("carrera").value;
+            var cursos = document.getElementById("curso").options;
+            
+            for (var i = 0; i < cursos.length; i++) {
+                var option = cursos[i];
+                if (option.dataset.carreraId == carreraId || option.value == "") {
+                    option.style.display = "block";
+                } else {
+                    option.style.display = "none";
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">Registrar Materia</h1>
+        <form action="/registrar_materia" method="post">
+            <div class="mb-3">
+                <label for="nombre_materia" class="form-label">Nombre de la Materia</label>
+                <input type="text" class="form-control" id="nombre_materia" name="nombre_materia" required>
+            </div>
+            
+            <!-- Selección de Carrera -->
+            <div class="mb-3">
+                <label for="carrera" class="form-label">Carrera</label>
+                <select class="form-control" id="carrera" name="carrera_id" onchange="filtrarCursos()" required>
+                    <option value="">Selecciona una carrera</option>
+                    {% for carrera in carreras %}
+                        <option value="{{ carrera.idCarreras }}">{{ carrera.nombre_carrera }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Selección de Curso (filtrado según la carrera seleccionada) -->
+            <div class="mb-3">
+                <label for="curso" class="form-label">Curso</label>
+                <select class="form-control" id="curso" name="cursos_idCursos" required>
+                    <option value="">Selecciona un curso</option>
+                    {% for carrera in carreras %}
+                        {% for curso in carrera.cursos %}
+                            <option value="{{ curso.idCursos }}" data-carrera-id="{{ carrera.idCarreras }}">
+                                {{ curso.nombre_curso }}
+                            </option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Registrar Materia</button>
+        </form>
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-secondary">Volver al Inicio</a>
+        </div>
+    </div>
+</body>
+</html>

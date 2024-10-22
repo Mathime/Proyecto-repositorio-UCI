@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Proyecto</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">Registrar Proyecto</h1>
+                {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
+        </div>
+        {% endif %}
+
+        <!-- Formulario de registro de proyectos -->
+        <form method="POST" action="/proyecto/create">
+            <!-- Campos del formulario -->
+            {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+</form>
+        
+        <form action="/proyecto/create" method="POST" class="mt-4">
+            <div class="form-group">
+                <label for="nombreProyecto">Nombre del Proyecto</label>
+                <input type="text" class="form-control" id="nombreProyecto" name="nombreProyecto" placeholder="Nombre del proyecto" required>
+            </div>
+
+            <div class="form-group">
+                <label for="facultades_ids">Facultades</label>
+                <select class="form-control" id="facultades_ids" name="facultades_ids" multiple required>
+                    <!-- Aquí se debe generar dinámicamente con Jinja los IDs de facultades desde la base de datos -->
+                    {% for facultad in facultades %}
+                    <option value="{{ facultad.idfacultades }}">{{ facultad.nombre_facultad }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Mantén presionado Ctrl (Windows) o Cmd (Mac) para seleccionar múltiples facultades.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" placeholder="Descripción del proyecto"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="fecha_asignacion">Fecha de Asignación</label>
+                <input type="datetime-local" class="form-control" id="fecha_asignacion" name="fecha_asignacion">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Registrar Proyecto</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-secondary">Volver al Inicio</a>
+        </div>
+    </div>
+
+    <script>
+        // Añade cualquier validación o funcionalidad adicional si es necesario.
+    </script>
+</body>
+</html>

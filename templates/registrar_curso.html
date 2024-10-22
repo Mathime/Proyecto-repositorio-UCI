@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Curso</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">Registrar Curso</h1>
+        {% if success_message %}
+            <div class="alert alert-success" role="alert">
+                {{ success_message }}
+            </div>
+        {% endif %}
+        <form action="/registrar_curso" method="post">
+            <div class="mb-3">
+                <label for="nombre_curso" class="form-label">Nombre del Curso</label>
+                <input type="text" class="form-control" id="nombre_curso" name="nombre_curso" required>
+            </div>
+            <div class="mb-3">
+                <label for="carrera" class="form-label">Carrera</label>
+                <select class="form-control" id="carrera" name="carrera_id" required>
+                    {% for carrera in carreras %}
+                        <option value="{{ carrera.idCarreras }}">{{ carrera.nombre_carrera }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Registrar Curso</button>
+        </form>
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+    </div>
+</body>
+</html>

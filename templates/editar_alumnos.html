@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">Editar Usuario</h1>
+        <form action="/edit_user/{{ usuario.idusuarios }}" method="post">
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ usuario.nombre_usuario }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="apellido" class="form-label">Apellido</label>
+                <input type="text" class="form-control" id="apellido" name="apellido" value="{{ usuario.apellido_usuario }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="text" class="form-control" id="telefono" name="telefono" value="{{ usuario.telefono_usuario }}">
+            </div>
+            <div class="mb-3">
+                <label for="documento" class="form-label">Documento</label>
+                <input type="text" class="form-control" id="documento" name="ci" value="{{ usuario.documento_usuario }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="direccion" class="form-label">Dirección</label>
+                <input type="text" class="form-control" id="direccion" name="direccion" value="{{ usuario.direccion_usuario }}">
+            </div>
+            <div class="mb-3">
+                <label for="matricula" class="form-label">Matrícula</label>
+                <input type="text" class="form-control" id="matricula" name="matricula" value="{{ usuario.matricula_usuario }}">
+            </div>
+            <div class="mb-3">
+                <label for="rol" class="form-label">Rol</label>
+                <input type="text" class="form-control" id="rol" name="rol" value="{{ usuario.rol_usuario }}">
+            </div>
+            <div class="mb-3">
+                <label for="correo" class="form-label">Correo</label>
+                <input type="email" class="form-control" id="correo" name="correo" value="{{ usuario.correo_usuario }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Dejar en blanco para no cambiar">
+            </div>
+            <button type="submit" class="btn btn-primary">Actualizar Usuario</button>
+        </form>
+        <div class="text-center mt-4">
+            <a href="/alumnos" class="btn btn-secondary">Volver a la lista de alumnos</a>
+        </div>
+    </div>
+</body>
+</html>

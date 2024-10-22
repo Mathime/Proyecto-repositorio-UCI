@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <title>Lista de Facultades</title>
+</head>
+<body>
+    <div class="list-container">
+        <h1>Facultades Registradas</h1>
+        <ul>
+            {% for facultad in facultades %}
+                <li>{{ facultad.nombre_facultad }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="text-center mt-4">
+        <a href="/" class="btn btn-primary">Volver al Inicio</a>
+    </div>
+</body>
+</html>
