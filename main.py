@@ -108,6 +108,12 @@ async def mostrar_formulario_editar(request: Request, user_id: int, db: Session 
     if usuario is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return templates.TemplateResponse("editar_alumnos.html", {"request": request, "usuario": usuario})
+@app.get("/edit_user1/{user_id}", response_class=HTMLResponse)
+async def mostrar_formulario_edita(request: Request, user_id: int, db: Session = Depends(get_db)):
+    usuario = db.query(Usuario).filter(Usuario.idusuarios == user_id).first()
+    if usuario is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return templates.TemplateResponse("edit_user.html", {"request": request, "usuario": usuario})
 @app.post("/edit_user/{user_id}")
 async def editar_usuario(
     user_id: int,

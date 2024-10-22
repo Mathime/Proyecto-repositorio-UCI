@@ -34,7 +34,7 @@
                     <td>{{ usuario.rol_usuario }}</td>
                     <td>
                         <!-- Botón para editar -->
-                        <a href="/edit_user/{{ usuario.idusuarios }}" class="btn btn-warning btn-sm">Editar</a>
+                        <a href="/edit_user1/{{ usuario.idusuarios }}" class="btn btn-warning btn-sm">Editar</a>
                         <!-- Formulario para eliminar usuario -->
                         <form action="/delete_user/{{ usuario.idusuarios }}" method="post" style="display:inline;">
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres eliminar este usuario?')">Eliminar</button>
