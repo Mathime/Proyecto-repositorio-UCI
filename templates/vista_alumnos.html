@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard del Alumno</title>
+</head>
+<body>
+    <h1>Bienvenido, {{ alumno.nombre_usuario }} {{ alumno.apellido_usuario }}</h1>
+
+    <h2>Tus Materias</h2>
+    <ul>
+        {% for materia in materias %}
+            <li>{{ materia.nombre_materia }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Tus Proyectos</h2>
+    <ul>
+        {% for proyecto in proyectos %}
+            <li>{{ proyecto.nombreProyecto }} - {{ proyecto.descripcion }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
