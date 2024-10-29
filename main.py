@@ -9,18 +9,30 @@ from models import Usuario, Curso, Carrera, Materia, Proyecto, FacultadProyecto,
 from starlette.templating import Jinja2Templates
 from database import get_db, Base, engine
 from fastapi.staticfiles import StaticFiles
+from fastapi.security import OAuth2PasswordBearer
+from passlib.hash import bcrypt
+from fastapi import Depends
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 app = FastAPI()
+ADMIN_USERNAME = "20241988"
+ADMIN_PASSWORD = "admin123"
+
 Base.metadata.create_all(bind=engine)
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory='static'), name="static") # type: ignore
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/admin", response_class=HTMLResponse)
 def inicio(request:Request):
     return templates.TemplateResponse("index.html",{"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
 async def login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/vista_alumnos", response_class=HTMLResponse)
+async def alumno(request: Request):
+    return templates.TemplateResponse("vista_alumnos.html", {"request": request})
 
 ##
 @app.get("/facultades", response_class=HTMLResponse)
@@ -97,7 +109,7 @@ async def registrar_usuario(
     db.add(nuevo_usuario)
     db.commit()
     db.refresh(nuevo_usuario)
-    return RedirectResponse(url="/", status_code=302)
+    return RedirectResponse(url="/admin", status_code=302)
 
 
 @app.get("/docentes", response_class=HTMLResponse)
@@ -167,14 +179,14 @@ async def eliminar_usuario(user_id: int, db: Session = Depends(get_db)):
 
     db.delete(usuario)
     db.commit()
-    return RedirectResponse(url="/", status_code=302)
+    return RedirectResponse(url="/admin", status_code=302)
 @app.post("/registrar_facu")
 def registrar_facultad(facultad: str = Form(...), db: Session = Depends(get_db)):
     nueva_facu = models.Facultad(nombre_facultad=facultad)
     db.add(nueva_facu)
     db.commit()
     db.refresh(nueva_facu)
-    return RedirectResponse(url="/", status_code=302)
+    return RedirectResponse(url="/admin", status_code=302)
 @app.post("/carreras")
 def registrar_carrera(
     nombre_carrera: str = Form(...),
@@ -222,7 +234,7 @@ async def registrar_materia(
     db.commit()
     db.refresh(nueva_materia)
     
-    return RedirectResponse(url="/", status_code=302)
+    return RedirectResponse(url="/admin", status_code=302)
 @app.post("/proyecto/create")
 async def create_proyecto(
     request: Request,
@@ -262,3 +274,33 @@ async def create_proyecto(
             "request": request,
             "error_message": f"Error al registrar el proyecto: {str(e)}"
         })
+@app.post("/login")
+async def logearse(
+    request: Request,
+    ci: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Verificar si es el Admin
+    if ci == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        return RedirectResponse(url="/admin", status_code=302)
+    
+    # Verificar en la base de datos
+    usuario = db.query(Usuario).filter(Usuario.documento_usuario == ci).first()
+
+    if usuario is None:
+        raise HTTPException(status_code=401, detail="Usuario no encontrado")
+    
+    # Comparar la contraseña directamente en texto plano
+    if password != usuario.contra:
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+    
+    # Redirigir según el rol del usuario
+    if usuario.rol_usuario == "Docente":
+        return RedirectResponse(url="/docentes", status_code=302)
+    elif usuario.rol_usuario == "Estudiante":
+        return RedirectResponse(url="/vista_alumnos", status_code=302)
+    else:
+        raise HTTPException(status_code=403, detail="Rol no permitido")
+
+    

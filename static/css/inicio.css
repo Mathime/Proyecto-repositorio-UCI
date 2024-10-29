@@ -1,16 +1,6 @@
-body {
-    background-color: #f8f9fa;
-}
-.navbar {
-    background-color: #343a40;
-}
-.navbar a {
-    color: white;
-}
-.project-card {
-    margin-bottom: 20px;
-}
-.project-img {
-    height: 200px;
-    object-fit: cover;
+.bg-login-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fc;
 }
