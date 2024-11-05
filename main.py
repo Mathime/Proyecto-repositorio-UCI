@@ -13,6 +13,7 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.hash import bcrypt
 from fastapi import Depends
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 ADMIN_USERNAME = "20241988"
@@ -21,6 +22,26 @@ ADMIN_PASSWORD = "admin123"
 Base.metadata.create_all(bind=engine)
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory='static'), name="static") # type: ignore
+
+# Añadir un middleware para gestionar sesiones
+app.add_middleware(SessionMiddleware, secret_key="mysecret")
+
+@app.get("/dashboard")
+async def dashboard(request: Request):
+    # Verificar si el usuario está autenticado
+    if "user_id" not in request.session:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    
+    return {"message": "Bienvenido al dashboard"}
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    # Eliminar la sesión del usuario
+    request.session.clear()
+    
+    # Redirigir al usuario a la página de inicio de sesión
+    return RedirectResponse(url="/login", status_code=302)
 
 @app.get("/admin", response_class=HTMLResponse)
 def inicio(request:Request):
@@ -32,7 +53,9 @@ async def login(request: Request):
 
 @app.get("/vista_alumnos", response_class=HTMLResponse)
 async def alumno(request: Request):
-    return templates.TemplateResponse("vista_alumnos.html", {"request": request})
+    nombre_usuario = request.session.get('nombre_usuario', 'Usuario no identificado')  # Manejo seguro en caso de que falte el nombre
+    return templates.TemplateResponse("vista_alumnos.html", {"request": request, "nombre_usuario": nombre_usuario})
+
 
 ##
 @app.get("/facultades", response_class=HTMLResponse)
@@ -294,7 +317,8 @@ async def logearse(
     # Comparar la contraseña directamente en texto plano
     if password != usuario.contra:
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
-    
+    request.session['nombre_usuario'] = usuario.nombre_usuario
+
     # Redirigir según el rol del usuario
     if usuario.rol_usuario == "Docente":
         return RedirectResponse(url="/docentes", status_code=302)
