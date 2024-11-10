@@ -1,7 +1,14 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table
 from sqlalchemy.orm import relationship
 from database import Base
+
+# Tabla de asociación para la relación de muchos a muchos entre Proyecto y Usuario (para estudiantes)
+proyectos_estudiantes = Table(
+    'proyectos_estudiantes', Base.metadata,
+    Column('proyecto_id', Integer, ForeignKey('proyecto.idProyecto'), primary_key=True),
+    Column('estudiante_id', Integer, ForeignKey('usuarios.idusuarios'), primary_key=True)
+)
 
 class Usuario(Base):
     __tablename__ = "usuarios"
@@ -18,6 +25,11 @@ class Usuario(Base):
     correo_usuario = Column(String(50))
 
     auditorias = relationship("Auditoria", back_populates="usuario")
+     # Relación con proyectos dirigidos (si el usuario es un docente)
+    proyectos_dirigidos = relationship("Proyecto", back_populates="docente", foreign_keys="Proyecto.docente_id")
+    
+    # Relación con proyectos en los que es estudiante
+    proyectos = relationship("Proyecto", secondary=proyectos_estudiantes, back_populates="estudiantes")
 
 
 class Auditoria(Base):
@@ -76,8 +88,18 @@ class Proyecto(Base):
     __tablename__ = 'proyecto'
     idProyecto = Column(Integer, primary_key=True, index=True)
     nombreProyecto = Column(String(255), nullable=False)
-    facultades_relaciones = relationship("FacultadProyecto",
-    back_populates="proyecto")
+    descripcion = Column(String(255), nullable=True)  # Para descripciones adicionales
+    ruta_foto = Column(String(255), nullable=True)  # Ruta de la foto del proyecto
+
+    # Relación con el docente asignado
+    docente_id = Column(Integer, ForeignKey("usuarios.idusuarios"))
+    docente = relationship("Usuario", back_populates="proyectos_dirigidos", foreign_keys=[docente_id])
+
+    # Relación con los estudiantes asignados
+    estudiantes = relationship("Usuario", secondary=proyectos_estudiantes, back_populates="proyectos")
+
+    # Relación con facultades
+    facultades_relaciones = relationship("FacultadProyecto", back_populates="proyecto")
 
 class FacultadProyecto(Base):
     __tablename__ = 'facultad_proyecto'

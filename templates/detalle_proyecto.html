@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Proyecto</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white text-center">
+                <h2>{{ proyecto.nombreProyecto }}</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+                <p><strong>Fecha de Asignación:</strong> {{ fecha_asignacion.strftime('%d/%m/%Y') if fecha_asignacion else 'No disponible' }}</p>
+
+                {% if proyecto.docente %}
+                    <p><strong>Docente Involucrado:</strong> {{ proyecto.docente.nombre_usuario }} {{ proyecto.docente.apellido_usuario }}</p>
+                {% endif %}
+
+                {% if proyecto.estudiantes %}
+                    <p><strong>Estudiantes Involucrados:</strong></p>
+                    <ul class="list-group mb-3">
+                        {% for estudiante in proyecto.estudiantes %}
+                            <li class="list-group-item">{{ estudiante.nombre_usuario }} {{ estudiante.apellido_usuario }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% if proyecto.ruta_foto %}
+                    <div class="mb-4">
+                        <p><strong>Imágenes del Proyecto:</strong></p>
+                        <div class="row">
+                            {% for ruta in proyecto.ruta_foto.split(';') %}
+                                <div class="col-md-4 mb-3">
+                                    <img src="{{ '/' + ruta }}" alt="Foto del proyecto" class="img-fluid rounded" style="max-width: 100%; height: auto;">
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay imágenes disponibles.</p>
+                {% endif %}
+
+            </div>
+            <div class="card-footer text-center">
+                <a href="/" class="btn btn-secondary">Volver</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

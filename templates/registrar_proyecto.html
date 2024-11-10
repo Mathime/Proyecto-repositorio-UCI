@@ -9,22 +9,20 @@
 <body>
     <div class="container">
         <h1 class="text-center mt-5">Registrar Proyecto</h1>
-                {% if success_message %}
+        
+        {% if success_message %}
         <div class="alert alert-success" role="alert">
             {{ success_message }}
         </div>
         {% endif %}
 
+        {% if error_message %}
+        <div class="alert alert-danger" role="alert">
+            {{ error_message }}
+        </div>
+        {% endif %}
+
         <!-- Formulario de registro de proyectos -->
-        <form method="POST" action="/proyecto/create">
-            <!-- Campos del formulario -->
-            {% if error_message %}
-            <div class="alert alert-danger" role="alert">
-                {{ error_message }}
-            </div>
-            {% endif %}
-</form>
-        
         <form action="/proyecto/create" method="POST" class="mt-4">
             <div class="form-group">
                 <label for="nombreProyecto">Nombre del Proyecto</label>
@@ -34,12 +32,21 @@
             <div class="form-group">
                 <label for="facultades_ids">Facultades</label>
                 <select class="form-control" id="facultades_ids" name="facultades_ids" multiple required>
-                    <!-- Aquí se debe generar dinámicamente con Jinja los IDs de facultades desde la base de datos -->
                     {% for facultad in facultades %}
                     <option value="{{ facultad.idfacultades }}">{{ facultad.nombre_facultad }}</option>
                     {% endfor %}
                 </select>
                 <small class="form-text text-muted">Mantén presionado Ctrl (Windows) o Cmd (Mac) para seleccionar múltiples facultades.</small>
+            </div>
+
+            <!-- Nuevo campo de selección de docente -->
+            <div class="form-group">
+                <label for="docente_id">Docente Asignado</label>
+                <select class="form-control" id="docente_id" name="docente_id" required>
+                    {% for docente in docentes %}
+                    <option value="{{ docente.idusuarios }}">{{ docente.nombre_usuario }} {{ docente.apellido_usuario }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="form-group">
@@ -65,3 +72,4 @@
     </script>
 </body>
 </html>
+

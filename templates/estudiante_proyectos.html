@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Proyecto</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <script src="/static/js/tiempomsj.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">Actualizar Proyecto</h1>
+
+        {% if success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ success_message }}
+        </div>
+        {% endif %}
+
+    {% for proyecto in proyectos %}
+        <form action="/proyecto/actualizar_estudiante/{{ proyecto.idProyecto }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="3">{{ proyecto.descripcion }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="foto">Añadir Fotos</label>
+                <input type="file" class="form-control-file" id="foto" name="fotos" multiple>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </form>
+    {% else %}
+    <p>No se encontraron proyectos asignados.</p>
+    {% endfor %}
+
+    </div>
+</body>
+</html>

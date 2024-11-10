@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio Alumno</title>
+    <title>Inicio Docente</title>
     <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-5">
         <div class="row">
-            <!-- Saludo al alumno -->
+            <!-- Saludo al docente -->
             <div class="col-12 text-center mb-4">
-                <h2>Bienvenido, {{ alumno.nombre_usuario }} {{ alumno.apellido_usuario }}</h2>
-                <p class="lead">Aquí puedes ver y gestionar tus proyectos.</p>
+                <h2>Bienvenido, {{ docente.nombre_usuario }} {{ docente.apellido_usuario }}</h2>
+                <p class="lead">Aquí puedes gestionar tus proyectos y ver la información más relevante.</p>
             </div>
         </div>
 
@@ -24,51 +24,51 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Mis Proyectos</div>
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Mis Proyectos Asignados</div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ proyectos|length }} Proyectos</div>
                             </div>
                             <div class="col-auto">
-                                <i class="fas fa-book-open fa-2x text-gray-300"></i>
+                                <i class="fas fa-book fa-2x text-gray-300"></i>
                             </div>
                         </div>
                     </div>
-                    <a href="/alumno/proyectos" class="stretched-link"></a>
+                    <a href="/proyectos_docentes" class="stretched-link"></a>
                 </div>
             </div>
 
-            <!-- Tarjeta de Documentos Relevantes -->
+            <!-- Tarjeta de Estudiantes Asignados -->
             <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card border-left-info shadow h-100 py-2">
+                <div class="card border-left-success shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Documentos</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">Revisar</div>
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Estudiantes Asignados</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">Ver y gestionar</div>
                             </div>
                             <div class="col-auto">
-                                <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
                             </div>
                         </div>
                     </div>
-                    <a href="/alumno/documentos" class="stretched-link"></a>
+                    <a href="/docente/estudiantes" class="stretched-link"></a>
                 </div>
             </div>
 
-            <!-- Tarjeta de Notificaciones -->
+            <!-- Tarjeta de Mensajes o Notificaciones -->
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="card border-left-warning shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Notificaciones</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">Ver Notificaciones</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">Revisar</div>
                             </div>
                             <div class="col-auto">
                                 <i class="fas fa-bell fa-2x text-gray-300"></i>
                             </div>
                         </div>
                     </div>
-                    <a href="/alumno/notificaciones" class="stretched-link"></a>
+                    <a href="/docente/notificaciones" class="stretched-link"></a>
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@
                 <a href="/perfil" class="btn btn-info btn-block">Ver Perfil</a>
             </div>
             <div class="col-md-4 mb-4">
-                <a href="/proyectos_estudiantes" class="btn btn-primary btn-block">Mis Proyectos</a>
+                <a href="/proyectos_docentes" class="btn btn-primary btn-block">Gestionar Proyectos</a>
             </div>
             <div class="col-md-4 mb-4">
                 <a href="/logout" class="btn btn-danger btn-block">Cerrar Sesión</a>

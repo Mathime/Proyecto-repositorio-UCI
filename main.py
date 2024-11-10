@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
+import shutil
 from typing import List, Optional
-from fastapi import FastAPI, Form, Depends, HTTPException,Request, Response
+from fastapi import FastAPI, File, Form, Depends, HTTPException,Request, Response, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
@@ -14,7 +15,7 @@ from passlib.hash import bcrypt
 from fastapi import Depends
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 from starlette.middleware.sessions import SessionMiddleware
-
+from models import proyectos_estudiantes
 app = FastAPI()
 ADMIN_USERNAME = "20241988"
 ADMIN_PASSWORD = "admin123"
@@ -34,6 +35,33 @@ async def dashboard(request: Request):
     
     return {"message": "Bienvenido al dashboard"}
 
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request, db: Session = Depends(get_db)):
+    # Obtener todos los proyectos
+    proyectos = db.query(Proyecto).all()
+    return templates.TemplateResponse("vista_global.html", {
+        "request": request,
+        "proyectos": proyectos
+    })
+@app.get("/proyecto/detalle/{proyecto_id}", response_class=HTMLResponse)
+async def detalle_proyecto(proyecto_id: int, request: Request, db: Session = Depends(get_db)):
+    # Buscar el proyecto por ID
+    proyecto = db.query(Proyecto).filter(Proyecto.idProyecto == proyecto_id).first()
+    
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+
+    # Obtener el docente y los estudiantes relacionados al proyecto
+    docente = proyecto.docente
+    estudiantes = proyecto.estudiantes
+
+    return templates.TemplateResponse("detalle_proyecto.html", {
+        "request": request,
+        "proyecto": proyecto,
+        "docente": docente,
+        "estudiantes": estudiantes,
+        "fecha_asignacion": proyecto.facultades_relaciones[0].fecha_asignacion if proyecto.facultades_relaciones else None
+    })
 
 @app.get("/logout")
 async def logout(request: Request):
@@ -47,14 +75,122 @@ async def logout(request: Request):
 def inicio(request:Request):
     return templates.TemplateResponse("index.html",{"request": request})
 
+@app.get("/proyectos_estudiantes", response_class=HTMLResponse)
+async def proyectos_estudiantes1(request: Request, db: Session = Depends(get_db)):
+    if "user_id" not in request.session:
+        raise HTTPException(status_code=401, detail="No autenticado")
+
+    usuario_id = request.session["user_id"]
+    estudiante = db.query(Usuario).filter(
+        Usuario.idusuarios == usuario_id,
+        Usuario.rol_usuario == "Estudiante"
+    ).first()
+
+    if not estudiante:
+        raise HTTPException(status_code=403, detail="Acceso no autorizado")
+
+    # Obtener los proyectos asociados al estudiante
+    proyectos = db.query(Proyecto).join(proyectos_estudiantes).filter(
+        proyectos_estudiantes.c.estudiante_id == estudiante.idusuarios
+    ).all()
+
+    if not proyectos:
+        print("No se encontraron proyectos para este estudiante.")  # Depuración
+
+    return templates.TemplateResponse("estudiante_proyectos.html", {
+        "request": request,
+        "proyectos": proyectos,  # Asegúrate de que esta variable esté pasando correctamente
+        "estudiante": estudiante
+    })
+
+@app.get("/proyecto/actualizar_estudiante/{proyecto_id}", response_class=HTMLResponse)
+async def mostrar_formulario_actualizar_proyecto(
+    proyecto_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    print("Proyecto ID recibido:", proyecto_id)
+    if "user_id" not in request.session:
+        raise HTTPException(status_code=401, detail="No autenticado")
+
+    usuario_id = request.session["user_id"]
+
+    # Verificar si el usuario es un estudiante
+    estudiante = db.query(Usuario).filter(Usuario.idusuarios == usuario_id, Usuario.rol_usuario == "Estudiante").first()
+    if not estudiante:
+        raise HTTPException(status_code=403, detail="Acceso no autorizado")
+
+
+    # Buscar el proyecto en base al estudiante asignado y al ID del proyecto
+    proyecto = db.query(Proyecto).join(proyectos_estudiantes).filter(
+        Proyecto.idProyecto == proyecto_id,
+        proyectos_estudiantes.c.estudiante_id == estudiante.idusuarios
+    ).first()
+
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado para este estudiante")
+
+    return templates.TemplateResponse("estudiante_proyectos.html", {
+        "request": request,
+        "proyecto": proyecto
+    })
+
+
+@app.get("/proyectos_docentes", response_class=HTMLResponse)
+async def proyectos_asignados(request: Request, db: Session = Depends(get_db)):
+    docente = db.query(Usuario).filter(Usuario.rol_usuario == "Docente").first()  # Ajusta esto según tu autenticación
+    if not docente:
+        raise HTTPException(status_code=404, detail="Docente no encontrado")
+
+    proyectos = db.query(Proyecto).filter(Proyecto.docente_id == docente.idusuarios).all()
+    estudiantes = db.query(Usuario).filter(Usuario.rol_usuario == "Estudiante").all()
+
+    return templates.TemplateResponse("docente_proyectos.html", {
+        "request": request,
+        "proyectos": proyectos,
+        "estudiantes": estudiantes
+    })
+
+@app.get("/vista_docente", response_class=HTMLResponse)
+async def vista_asignaralumnos(request: Request, db: Session = Depends(get_db)):
+    docente = db.query(Usuario).filter(Usuario.rol_usuario == "Docente").first()  # Ajusta esto para el docente autenticado
+    if not docente:
+        raise HTTPException(status_code=404, detail="Docente no encontrado")
+    
+    # Proyectos asignados al docente
+    proyectos = db.query(Proyecto).filter(Proyecto.docente_id == docente.idusuarios).all()
+    # Todos los estudiantes
+    estudiantes = db.query(Usuario).filter(Usuario.rol_usuario == "Estudiante").all()
+
+    return templates.TemplateResponse("vista_docente.html", {
+        "request": request,
+        "docente": docente,
+        "proyectos": proyectos,
+        "estudiantes": estudiantes
+    })
+
+
 @app.get("/login", response_class=HTMLResponse)
 async def login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/vista_alumnos", response_class=HTMLResponse)
-async def alumno(request: Request):
-    nombre_usuario = request.session.get('nombre_usuario', 'Usuario no identificado')  # Manejo seguro en caso de que falte el nombre
-    return templates.TemplateResponse("vista_alumnos.html", {"request": request, "nombre_usuario": nombre_usuario})
+async def vista_alumno(request: Request, db: Session = Depends(get_db)):
+    # Obtén al primer usuario con el rol de "Estudiante" (ajusta esto según tu lógica)
+    alumno = db.query(Usuario).filter(Usuario.rol_usuario == "Estudiante").first()
+    
+    if not alumno:
+        raise HTTPException(status_code=404, detail="Alumno no encontrado")
+
+    proyectos = db.query(Proyecto).join(proyectos_estudiantes).filter(proyectos_estudiantes.c.estudiante_id == alumno.idusuarios).all()
+
+    return templates.TemplateResponse("vista_alumnos.html", {
+        "request": request,
+        "alumno": alumno,
+        "proyectos": proyectos
+    })
+
+
 
 
 ##
@@ -97,9 +233,64 @@ Depends(get_db)):
 {"request": request, "proyectos": proyectos})
 
 @app.get("/proyecto/registrar", response_class=HTMLResponse)
-def registrar_proyecto(request: Request, mensaje: str = None, db: Session = Depends(get_db)):
-    facultades = db.query(Facultad).all()  
-    return templates.TemplateResponse("registrar_proyecto.html", {"request": request, "facultades": facultades, "mensaje": mensaje})
+def registrar_proyecto(request: Request, db: Session = Depends(get_db)):
+    facultades = db.query(Facultad).all()
+    docentes = db.query(Usuario).filter(Usuario.rol_usuario == "Docente").all()
+
+    return templates.TemplateResponse("registrar_proyecto.html", {
+        "request": request,
+        "facultades": facultades,
+        "docentes": docentes
+    })
+
+@app.get("/docente/proyectos", response_class=HTMLResponse)
+async def proyectos_docente(request: Request, db: Session = Depends(get_db)):
+    # Verificar si el usuario está autenticado mediante la sesión
+    if "user_id" not in request.session:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    
+    # Obtener el ID del usuario desde la sesión
+    usuario_id = request.session["user_id"]
+
+    # Verificar si el usuario es un docente
+    docente = db.query(Usuario).filter(Usuario.idusuarios == usuario_id, Usuario.rol_usuario == "Docente").first()
+    if not docente:
+        raise HTTPException(status_code=403, detail="Acceso no autorizado")
+
+    # Obtener los proyectos asignados al docente
+    proyectos = db.query(Proyecto).filter(Proyecto.docente_id == docente.idusuarios).all()
+    estudiantes = db.query(Usuario).filter(Usuario.rol_usuario == "Estudiante").all()
+
+    return templates.TemplateResponse("docente_proyectos.html", {
+        "request": request,
+        "proyectos": proyectos,
+        "estudiantes": estudiantes
+    })
+
+
+@app.post("/proyecto/editar_descripcion/{proyecto_id}")
+async def editar_descripcion_proyecto(
+    proyecto_id: int,
+    request: Request,  # Argumento obligatorio primero
+    descripcion: str = Form(...),  # Argumento con valor por defecto después
+    db: Session = Depends(get_db)
+):
+    # Buscar el proyecto por ID
+    proyecto = db.query(Proyecto).filter(Proyecto.idProyecto == proyecto_id).first()
+    
+
+    # Verificar si el proyecto existe
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    print("Contenido de la sesión antes de redirigir:", request.session)
+
+
+    # Actualizar la descripción
+    proyecto.descripcion = descripcion
+    db.commit()
+
+    # Redirigir a la vista de gestión de proyectos del docente
+    return RedirectResponse(url="/docente/proyectos", status_code=302)
 
 
 @app.post("/register")
@@ -133,6 +324,77 @@ async def registrar_usuario(
     db.commit()
     db.refresh(nuevo_usuario)
     return RedirectResponse(url="/admin", status_code=302)
+
+
+@app.post("/proyecto/asignar_estudiantes/{proyecto_id}")
+async def asignar_estudiantes_proyecto(
+    proyecto_id: int,
+    estudiantes_ids: List[int] = Form(...),
+    db: Session = Depends(get_db)
+):
+    proyecto = db.query(Proyecto).filter(Proyecto.idProyecto == proyecto_id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+
+    estudiantes = db.query(Usuario).filter(Usuario.idusuarios.in_(estudiantes_ids)).all()
+    proyecto.estudiantes.extend(estudiantes)
+    db.commit()
+
+    return RedirectResponse(url="/docente/proyectos", status_code=302)
+
+import os
+@app.post("/proyecto/actualizar_estudiante/{proyecto_id}", response_class=HTMLResponse)
+async def actualizar_proyecto_estudiante(
+    request: Request,
+    proyecto_id: int,
+    descripcion: str = Form(...),
+    fotos: List[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+):
+    proyecto = db.query(Proyecto).filter(Proyecto.idProyecto == proyecto_id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+
+    if descripcion:
+        proyecto.descripcion = descripcion
+
+    # Verificar y crear el directorio si no existe
+    rutas_fotos = []
+    for foto in fotos:
+        ruta_foto = f"static/proyectos/{proyecto_id}/{foto.filename}"
+        with open(ruta_foto, "wb") as buffer:
+            shutil.copyfileobj(foto.file, buffer)
+        rutas_fotos.append(ruta_foto)
+
+    # Actualizar la ruta de fotos en la base de datos (agregar nuevas fotos a las existentes)
+    if proyecto.ruta_foto:
+        print("Rutas de imágenes a mostrar:", proyecto.ruta_foto.split(';'))
+
+    else:
+        proyecto.ruta_foto = ";".join(rutas_fotos)
+
+    db.commit()
+
+    # Consultar los proyectos asociados al estudiante nuevamente
+    usuario_id = request.session.get("user_id")
+    estudiante = db.query(Usuario).filter(
+        Usuario.idusuarios == usuario_id,
+        Usuario.rol_usuario == "Estudiante"
+    ).first()
+
+    proyectos_actualizados = db.query(Proyecto).join(proyectos_estudiantes).filter(
+        proyectos_estudiantes.c.estudiante_id == usuario_id
+    ).all()
+
+    # Pasar un mensaje de éxito y los proyectos actualizados al contexto de la plantilla
+    return templates.TemplateResponse("estudiante_proyectos.html", {
+        "request": request,
+        "proyectos": proyectos_actualizados,
+        "estudiante": estudiante,
+        "success_message": "Actualización exitosa"
+    })
+
+
 
 
 @app.get("/docentes", response_class=HTMLResponse)
@@ -263,18 +525,26 @@ async def create_proyecto(
     request: Request,
     nombreProyecto: str = Form(...),
     facultades_ids: List[int] = Form(...),
+    docente_id: int = Form(...),
     descripcion: str = Form(...),
     fecha_asignacion: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     try:
-        nuevo_proyecto = Proyecto(nombreProyecto=nombreProyecto)
+        # Crear el proyecto con el docente asignado
+        nuevo_proyecto = Proyecto(
+            nombreProyecto=nombreProyecto,
+            descripcion=descripcion,
+            docente_id=docente_id
+        )
         db.add(nuevo_proyecto)
         db.commit()
         db.refresh(nuevo_proyecto)
+        
         if fecha_asignacion:
             fecha_asignacion = datetime.strptime(fecha_asignacion, "%Y-%m-%dT%H:%M")
 
+        # Crear las relaciones con las facultades
         for facultad_id in facultades_ids:
             facultad_proyecto_relacion = FacultadProyecto(
                 facultad_id=facultad_id,
@@ -285,18 +555,19 @@ async def create_proyecto(
             db.add(facultad_proyecto_relacion)
 
         db.commit()
-        
+
         return templates.TemplateResponse("registrar_proyecto.html", {
             "request": request,
             "success_message": "El proyecto ha sido registrado exitosamente."
         })
 
-    except Exception as e:  
-        
+    except Exception as e:
+        db.rollback()  # Revertir los cambios si ocurre un error
         return templates.TemplateResponse("registrar_proyecto.html", {
             "request": request,
             "error_message": f"Error al registrar el proyecto: {str(e)}"
         })
+
 @app.post("/login")
 async def logearse(
     request: Request,
@@ -317,11 +588,12 @@ async def logearse(
     # Comparar la contraseña directamente en texto plano
     if password != usuario.contra:
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+    request.session['user_id'] = usuario.idusuarios  # Agregar el user_id
     request.session['nombre_usuario'] = usuario.nombre_usuario
 
     # Redirigir según el rol del usuario
     if usuario.rol_usuario == "Docente":
-        return RedirectResponse(url="/docentes", status_code=302)
+        return RedirectResponse(url="/vista_docente", status_code=302)
     elif usuario.rol_usuario == "Estudiante":
         return RedirectResponse(url="/vista_alumnos", status_code=302)
     else:
