@@ -27,7 +27,8 @@
                             <li class="list-group-item">
                                 <strong>Facultad:</strong> {{ relacion.facultad.nombre_facultad }} <br>
                                 <strong>Descripción:</strong> {{ relacion.descripcion }} <br>
-                                <strong>Fecha de asignación:</strong> {{ relacion.fecha_asignacion.strftime('%Y-%m-%d %H:%M') }}
+                                <strong>Fecha de asignación:</strong> {{ relacion.fecha_asignacion.strftime('%Y-%m-%d %H:%M') }} <br>
+                                <strong>Curso Asociado:</strong> {{ proyecto.curso.nombre_curso }}
                             </li>
                             {% endfor %}
                         </ul>

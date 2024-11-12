@@ -38,7 +38,14 @@
                 </select>
                 <small class="form-text text-muted">Mantén presionado Ctrl (Windows) o Cmd (Mac) para seleccionar múltiples facultades.</small>
             </div>
-
+            <div class="form-group">
+                <label for="curso_id">Curso</label>
+                <select class="form-control" id="curso_id" name="curso_id" required>
+                    {% for curso in cursos %}
+                        <option value="{{ curso.idCursos }}">{{ curso.nombre_curso }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <!-- Nuevo campo de selección de docente -->
             <div class="form-group">
                 <label for="docente_id">Docente Asignado</label>

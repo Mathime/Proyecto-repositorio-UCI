@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Usuarios</title>
+    <title>Lista de Docentes</title>
     <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center mt-5">Usuarios Registrados</h1>
-        <table class="table table-striped">
+        <h1 class="text-center mt-5">Docentes Registrados</h1>
+
+        <!-- Campo de búsqueda -->
+        <div class="mb-3">
+            <input type="text" id="buscarDocente" onkeyup="filtrarDocentes()" placeholder="Buscar docente..." class="form-control">
+        </div>
+
+        <table class="table table-striped" id="tablaDocentes">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -19,11 +25,12 @@
                     <th>Documento</th>
                     <th>Correo</th>
                     <th>Rol</th>
-                    <th>Acciones</th> <!-- Nueva columna para acciones -->
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for usuario in usuarios %}
+                {% if usuario.rol_usuario == "Docente" %}
                 <tr>
                     <td>{{ usuario.idusuarios }}</td>
                     <td>{{ usuario.nombre_usuario }}</td>
@@ -33,24 +40,27 @@
                     <td>{{ usuario.correo_usuario }}</td>
                     <td>{{ usuario.rol_usuario }}</td>
                     <td>
-                        <!-- Botón para editar -->
                         <a href="/edit_user1/{{ usuario.idusuarios }}" class="btn btn-warning btn-sm">Editar</a>
-                        <!-- Formulario para eliminar usuario -->
                         <form action="/delete_user/{{ usuario.idusuarios }}" method="post" style="display:inline;">
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres eliminar este usuario?')">Eliminar</button>
                         </form>
                     </td>
                 </tr>
-                {% else %}
-                <tr>
-                    <td colspan="8" class="text-center">No hay usuarios registrados.</td>
-                </tr>
+                {% endif %}
                 {% endfor %}
+                {% if usuarios|length == 0 %}
+                <tr>
+                    <td colspan="8" class="text-center">No hay docentes registrados.</td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
         <div class="text-center mt-4">
             <a href="/admin" class="btn btn-primary">Volver al Inicio</a>
         </div>
     </div>
+
+    <!-- Incluir el archivo JavaScript -->
+    <script src="/static/js/filtrarDocentes.js"></script>
 </body>
 </html>

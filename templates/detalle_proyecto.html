@@ -15,6 +15,10 @@
             <div class="card-body">
                 <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
                 <p><strong>Fecha de Asignación:</strong> {{ fecha_asignacion.strftime('%d/%m/%Y') if fecha_asignacion else 'No disponible' }}</p>
+                
+                {% if proyecto.curso %}
+                    <p><strong>Curso Asociado:</strong> {{ proyecto.curso.nombre_curso }}</p>
+                {% endif %}
 
                 {% if proyecto.docente %}
                     <p><strong>Docente Involucrado:</strong> {{ proyecto.docente.nombre_usuario }} {{ proyecto.docente.apellido_usuario }}</p>
@@ -43,7 +47,6 @@
                 {% else %}
                     <p class="text-muted">No hay imágenes disponibles.</p>
                 {% endif %}
-
             </div>
             <div class="card-footer text-center">
                 <a href="/" class="btn btn-secondary">Volver</a>

@@ -100,7 +100,9 @@ class Proyecto(Base):
 
     # Relación con facultades
     facultades_relaciones = relationship("FacultadProyecto", back_populates="proyecto")
-
+    curso_id = Column(Integer, ForeignKey("cursos.idCursos"))
+    curso = relationship("Curso")
+    
 class FacultadProyecto(Base):
     __tablename__ = 'facultad_proyecto'
     

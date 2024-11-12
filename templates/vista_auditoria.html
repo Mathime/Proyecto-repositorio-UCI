@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Auditorías</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">Registro de Auditorías</h2>
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for auditoria in auditorias %}
+                    <tr>
+                        <td>{{ auditoria.idauditoria }}</td>
+                        <td>
+                            {% if auditoria.fecha_auditoria %}
+                                {{ auditoria.fecha_auditoria.strftime('%d/%m/%Y %H:%M:%S') }}
+                            {% else %}
+                                No disponible
+                            {% endif %}
+                        </td>
+                        <td>{{ auditoria.descripcion_auditoria }}</td>
+                        <td>{{ auditoria.usuario.nombre_usuario }} {{ auditoria.usuario.apellido_usuario }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-center mt-4">
+            <a href="/admin" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+    </div>
+</body>
+</html>

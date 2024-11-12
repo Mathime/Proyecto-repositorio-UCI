@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividades de Proyectos</title>
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Actividades de Proyectos</h2>
+        <div class="list-group">
+            {% for actividad in actividades %}
+                <div class="list-group-item">
+                    <p><strong>Fecha:</strong> {{ actividad.fecha_auditoria.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+                    <p><strong>Descripción:</strong> {{ actividad.descripcion_auditoria }}</p>
+                    <p><strong>Usuario:</strong> {{ actividad.usuario.nombre_usuario }} {{ actividad.usuario.apellido_usuario }}</p>
+                </div>
+            {% else %}
+                <p class="text-center">No hay actividades recientes registradas para los proyectos asignados.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

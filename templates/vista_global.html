@@ -29,7 +29,11 @@
             {% for proyecto in proyectos %}
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="{{ proyecto.ruta_foto.split(';')[0] }}" alt="Imagen del proyecto" class="card-img-top" style="height: 200px; object-fit: cover;">
+                        {% if proyecto.ruta_foto %}
+                            <img src="{{ proyecto.ruta_foto.split(';')[0] }}" alt="Imagen del proyecto" class="card-img-top" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <img src="/static/img/default.png" alt="Imagen por defecto" class="card-img-top" style="height: 200px; object-fit: cover;">
+                        {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ proyecto.nombreProyecto }}</h5>
                             <a href="/proyecto/detalle/{{ proyecto.idProyecto }}" class="btn btn-primary">Ver Detalles</a>
@@ -37,7 +41,7 @@
                     </div>
                 </div>
             {% endfor %}
-        </div>
+        </div>        
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
