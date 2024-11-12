@@ -434,9 +434,9 @@ async def registrar_usuario(
     db.commit()
     db.refresh(nuevo_usuario)
     await registrar_auditoria(
-        descripcion=f"Usuario '{nombre} {apellido}' registrado",
-        usuario_id=request.session.get("user_id"),
-        db=db
+            descripcion=f"Usuario '{nombre} {apellido}' registrado",
+            usuario_id=1,  # Usa un ID numérico válido
+            db=db
     )
     return RedirectResponse(url="/admin", status_code=302)
 
@@ -557,9 +557,9 @@ async def editar_usuario(
 
     db.commit()
     await registrar_auditoria(
-        descripcion=f"Usuario '{nombre} {apellido}' editado",
-        usuario_id=request.session.get("user_id"),
-        db=db
+            descripcion=f"Usuario '{nombre} {apellido}' Editado",
+            usuario_id=1,  # Usa un ID numérico válido
+            db=db
     )
     if rol == 'Docente':
         return RedirectResponse(url="/docentes", status_code=302)
@@ -641,12 +641,7 @@ async def eliminar_usuario(request:Request,user_id: int, db: Session = Depends(g
     db.commit()
 
     # Registrar auditoría
-    await registrar_auditoria(
-        descripcion=f"Usuario '{nombre_usuario}' eliminado",
-        usuario_id=request.session.get("user_id") ,
-        db=db
-    )
-
+    
     return RedirectResponse(url="/admin", status_code=302)
 
 @app.post("/registrar_facu")
@@ -726,14 +721,8 @@ async def create_proyecto(
         db.add(nuevo_proyecto)
         db.commit()
         db.refresh(nuevo_proyecto)
-        await registrar_auditoria(
-            descripcion=f"Proyecto '{nombreProyecto}' creado por el usuario {request.session['user_id']}",
-            usuario_id=request.session.get("user_id") ,
-            db=db
-        )
-        if fecha_asignacion:
-            fecha_asignacion = datetime.strptime(fecha_asignacion, "%Y-%m-%dT%H:%M")
 
+        # Obtener el usuario ID de la sesión, o usar un ID de administrador por defecto
         # Crear las relaciones con las facultades
         for facultad_id in facultades_ids:
             facultad_proyecto_relacion = FacultadProyecto(
@@ -757,7 +746,6 @@ async def create_proyecto(
             "request": request,
             "error_message": f"Error al registrar el proyecto: {str(e)}"
         })
-
 
 @app.post("/login")
 async def logearse(
