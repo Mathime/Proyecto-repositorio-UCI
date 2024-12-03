@@ -90,7 +90,7 @@ class Proyecto(Base):
     nombreProyecto = Column(String(255), nullable=False)
     descripcion = Column(String(255), nullable=True)  # Para descripciones adicionales
     ruta_foto = Column(String(255), nullable=True)  # Ruta de la foto del proyecto
-
+    youtube_link = Column(String(255), nullable=True)  # Nuevo campo para almacenar el enlace de YouTube
     # Relación con el docente asignado
     docente_id = Column(Integer, ForeignKey("usuarios.idusuarios"))
     docente = relationship("Usuario", back_populates="proyectos_dirigidos", foreign_keys=[docente_id])

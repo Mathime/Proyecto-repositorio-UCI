@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import shutil
 from typing import List, Optional
-from fastapi import FastAPI, File, Form, Depends, HTTPException,Request, Response, UploadFile
+from fastapi import FastAPI, File, Form, Depends, HTTPException, Query,Request, Response, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
@@ -42,25 +42,46 @@ async def index(request: Request, db: Session = Depends(get_db)):
         "request": request,
         "proyectos": proyectos
     })
+import re
 @app.get("/proyecto/detalle/{proyecto_id}", response_class=HTMLResponse)
 async def detalle_proyecto(proyecto_id: int, request: Request, db: Session = Depends(get_db)):
     # Buscar el proyecto por ID
     proyecto = db.query(Proyecto).filter(Proyecto.idProyecto == proyecto_id).first()
-    
+
     if not proyecto:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
 
     # Obtener el docente y los estudiantes relacionados al proyecto
     docente = proyecto.docente
     estudiantes = proyecto.estudiantes
+    
+    # Verificar si existe el campo youtube_links
+    youtube_links = []
+    if hasattr(proyecto, 'youtube_links') and proyecto.youtube_links:
+        youtube_links = proyecto.youtube_links.split(";")
+
+    # Obtener las miniaturas de YouTube
+    thumbnails = []
+    for link in youtube_links:
+        # Expresión regular para extraer el video_id de la URL de YouTube
+        match = re.search(r"v=([a-zA-Z0-9_-]+)", link)
+        if match:
+            video_id = match.group(1)
+            thumbnail_url = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+            thumbnails.append(thumbnail_url)
+
+    # Obtener la fecha de asignación si existe
+    fecha_asignacion = proyecto.facultades_relaciones[0].fecha_asignacion if proyecto.facultades_relaciones else None
 
     return templates.TemplateResponse("detalle_proyecto.html", {
         "request": request,
         "proyecto": proyecto,
         "docente": docente,
         "estudiantes": estudiantes,
-        "fecha_asignacion": proyecto.facultades_relaciones[0].fecha_asignacion if proyecto.facultades_relaciones else None
+        "fecha_asignacion": fecha_asignacion,
+        "thumbnails": thumbnails  # Pasamos las miniaturas a la plantilla
     })
+
 @app.get("/actividades_proyectos_docente", response_class=HTMLResponse)
 async def actividades_proyectos_docente(request: Request, db: Session = Depends(get_db)):
     if "user_id" not in request.session:
@@ -279,6 +300,23 @@ async def vista_alumno(request: Request, db: Session = Depends(get_db)):
         "proyectos": proyectos
     })
 
+@app.get("/buscar_proyectos")
+async def buscar_proyectos(request: Request, query: str = Query(None), db: Session = Depends(get_db)):
+    # Si la búsqueda está vacía, traer todos los proyectos
+    if query:
+        # Filtramos proyectos por nombre o descripción (puedes agregar más campos según sea necesario)
+        proyectos = db.query(Proyecto).filter(
+            Proyecto.nombreProyecto.ilike(f"%{query}%") | Proyecto.descripcion.ilike(f"%{query}%")
+        ).all()
+    else:
+        proyectos = db.query(Proyecto).all()
+
+    # Renderizamos la plantilla con los proyectos encontrados
+    return templates.TemplateResponse("vista_global.html", {
+        "request": request,
+        "proyectos": proyectos,
+        "query": query
+    })
 
 
 
@@ -464,14 +502,23 @@ async def actualizar_proyecto_estudiante(
     proyecto_id: int,
     descripcion: str = Form(...),
     fotos: List[UploadFile] = File(None),
+    youtube_link: str = Form(None),  # Añadir campo para el enlace de YouTube
     db: Session = Depends(get_db),
 ):
     proyecto = db.query(Proyecto).filter(Proyecto.idProyecto == proyecto_id).first()
     if not proyecto:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
 
+    # Actualizar la descripción si se proporciona
     if descripcion:
         proyecto.descripcion = descripcion
+
+    # Actualizar el enlace de YouTube si se proporciona
+    if youtube_link:
+        # Validar el enlace (opcional) si deseas asegurarte que el formato sea correcto
+        if "youtube.com/watch?v=" not in youtube_link:
+            raise HTTPException(status_code=400, detail="Enlace de YouTube inválido")
+        proyecto.youtube_link = youtube_link
 
     # Verificar y crear el directorio si no existe
     directorio_proyecto = f"static/proyectos/{proyecto_id}"
@@ -480,21 +527,22 @@ async def actualizar_proyecto_estudiante(
 
     # Guardar las fotos
     rutas_fotos = []
-    for foto in fotos:
-        ruta_foto = os.path.join(directorio_proyecto, foto.filename)
-        with open(ruta_foto, "wb") as buffer:
-            shutil.copyfileobj(foto.file, buffer)
-        rutas_fotos.append(ruta_foto)
+    if fotos:
+        for foto in fotos:
+            ruta_foto = os.path.join(directorio_proyecto, foto.filename)
+            with open(ruta_foto, "wb") as buffer:
+                shutil.copyfileobj(foto.file, buffer)
+            rutas_fotos.append(ruta_foto)
 
-    # Actualizar la ruta de fotos en la base de datos (agregar nuevas fotos a las existentes)
-    if proyecto.ruta_foto:
-        proyecto.ruta_foto += ";" + ";".join(rutas_fotos)
-    else:
-        proyecto.ruta_foto = ";".join(rutas_fotos)
+        # Actualizar la ruta de fotos en la base de datos (agregar nuevas fotos a las existentes)
+        if proyecto.ruta_foto:
+            proyecto.ruta_foto += ";" + ";".join(rutas_fotos)
+        else:
+            proyecto.ruta_foto = ";".join(rutas_fotos)
 
+    # Guardar los cambios en la base de datos
     db.commit()
 
-    # Pasar un mensaje de éxito y los proyectos actualizados al contexto de la plantilla
     return templates.TemplateResponse("estudiante_proyectos.html", {
         "request": request,
         "proyectos": [proyecto],

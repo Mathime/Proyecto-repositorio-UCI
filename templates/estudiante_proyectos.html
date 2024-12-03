@@ -1,40 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Actualizar Proyecto</title>
     <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="/static/js/tiempomsj.js"></script>
 </head>
+
 <body>
-    <div class="container">
-        <h1 class="text-center mt-5">Actualizar Proyecto</h1>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4 text-primary">Actualizar Proyecto</h1>
 
         {% if success_message %}
-        <div class="alert alert-success" role="alert">
-            {{ success_message }}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>¡Éxito!</strong> {{ success_message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
         {% endif %}
 
-    {% for proyecto in proyectos %}
-        <form action="/proyecto/actualizar_estudiante/{{ proyecto.idProyecto }}" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="descripcion">Descripción</label>
-                <textarea class="form-control" id="descripcion" name="descripcion" rows="3">{{ proyecto.descripcion }}</textarea>
+        {% if proyectos %}
+        <div class="row">
+            {% for proyecto in proyectos %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title m-0">{{ proyecto.nombreProyecto }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ proyecto.descripcion[:150] }}...</p>
+                        
+                        <h6 class="text-muted">Alumnos Involucrados:</h6>
+                        <ul class="list-unstyled">
+                            {% for estudiante in proyecto.estudiantes %}
+                            <li><i class="fas fa-user"></i> {{ estudiante.nombre_usuario }} {{ estudiante.apellido_usuario }}</li>
+                            {% else %}
+                            <li>No hay alumnos asignados a este proyecto.</li>
+                            {% endfor %}
+                        </ul>
+
+                        <form action="/proyecto/actualizar_estudiante/{{ proyecto.idProyecto }}" method="POST" enctype="multipart/form-data">
+                            
+                            <div class="form-group">
+                                <label for="descripcion">Descripción</label>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required>{{ proyecto.descripcion }}</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="foto">Añadir Fotos</label>
+                                <input type="file" class="form-control-file" id="foto" name="fotos" multiple>
+                            </div>
+                            <div class="form-group">
+                                <label for="youtube_link">Enlace de YouTube</label>
+                                <input type="url" class="form-control" id="youtube_link" name="youtube_link" value="{{ proyecto.youtube_link }}">
+                                <small id="youtubeHelp" class="form-text text-muted">Introduce un enlace de YouTube para incrustar el video.</small>
+                            </div>
+                            <button type="submit" class="btn btn-success mt-3 w-100">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="foto">Añadir Fotos</label>
-                <input type="file" class="form-control-file" id="foto" name="fotos" multiple>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-        </form>
-    {% else %}
-    <p>No se encontraron proyectos asignados.</p>
-    {% endfor %}
-
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning" role="alert">
+            <strong>Advertencia:</strong> No se encontraron proyectos asignados.
+        </div>
+        {% endif %}
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
